@@ -1,0 +1,3 @@
+= OpenRC runscript for QEMU
+
+This is an opinionated OpenRC runscript for x86_64 QEMU/KVM virtual machines.
