@@ -1,0 +1,30 @@
+#!/bin/bash
+# vim: set ts=4:
+
+if [ -z "$1" ]; then
+	echo "Usage: virsh <VM-NAME | SOCKET-PATH> [command ...]"
+	exit 1
+fi
+
+if [[ "$1" = /* ]]; then
+	socket_path="$1"
+else
+	socket_path="/run/qemu/$1/monitor.sock"
+fi
+
+if [ ! -S "$socket_path" ]; then
+	echo "Error: QEMU monitor socket $socket_path does not exist!" >&2
+	exit 2
+fi
+
+if [ -n "$2" ]; then
+	IFS=$'\n'
+	shift
+	echo -e "$*" | socat - "UNIX-CONNECT:$socket_path"
+else
+	echo 'Connecting to QEMU monitor in interactive mode. Use Ctrl+O to exit.'
+	echo 'Note: command "quit" does not exit the monitor, but stops VM!'
+	echo ''
+	socat -,raw,echo=0,escape=0x0f "UNIX-CONNECT:$socket_path"
+fi
+echo ''

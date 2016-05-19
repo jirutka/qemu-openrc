@@ -1,0 +1,204 @@
+#!/sbin/runscript
+# vim: set ft=bash: ts=4:
+
+vm_name=${RC_SVCNAME#qemu.}
+
+: ${user:=qemu}
+: ${group:=qemu}
+: ${pidfile:=/run/qemu/${vm_name}/qemu.pid}
+: ${logfile:=/var/log/qemu/${vm_name}.log}
+: ${shutdown_timeout:=60}
+
+: ${cpus:=1}
+: ${cpus_max:=$cpus}
+: ${memory:=1G}
+: ${memory_max:=$memory}
+: ${memory_slots:=2}
+: ${memory_hugepages:=no}
+: ${rtc_base:=utc}
+: ${vga:=std}
+: ${vnc_listen:=0.0.0.0}
+: ${hugepages_path:=/dev/hugepages}
+: ${monitor_socket:=/run/qemu/${vm_name}/monitor.sock}
+: ${net0:=bridge}
+
+extra_commands='forcestop'
+extra_started_commands='reset'
+
+name="VM $vm_name"
+describe="Qemu/KVM virtual machine \"$vm_name\""
+describe_forcestop='Force stop the system'
+describe_reset='Reset the system'
+
+command='/usr/bin/qemu-system-x86_64'
+command_args="
+	-name '$vm_name',process='$vm_name'
+	-nodefaults
+	-no-user-config
+	-cpu host
+	-enable-kvm
+	-realtime mlock=off
+	-rtc base=$rtc_base
+	-smp cpus=$cpus,maxcpus=$cpus_max
+	-m size=$memory,slots=$memory_slots,maxmem=$memory_max
+	-balloon virtio
+	-vga $vga
+	-device virtio-rng-pci
+	-device virtio-scsi-pci,id=scsi
+	-monitor 'unix:$monitor_socket,server,nowait'"
+command_background='yes'
+
+start_stop_daemon_args="
+	--user $user --wait 100
+	--stdout '$logfile' --stderr '$logfile'"
+
+depend() {
+	need net
+}
+
+start_pre() {
+	if [ "$RC_SVCNAME" = 'qemu' ]; then
+		eerror ''
+		eerror 'You are not supposed to run this runscript directly. Instead, you should'
+		eerror 'create a symlink for the VM you want to run as well as a copy of the'
+		eerror 'configuration file and modify it appropriately, like so:'
+		eerror ''
+		eerror '    ln -s qemu /etc/init.d/qemu.example'
+		eerror '    cp /etc/conf.d/qemu /etc/conf.d/qemu.example'
+		return 1
+	fi
+
+	if yesno "$memory_hugepages"; then
+		command_args+=" -mem-path '$hugepages_path'"
+	fi
+	if [ -n "$vnc_display" ]; then
+		command_args+=" -display vnc=${vnc_listen}:${vnc_display}${vnc_password:+,password}"
+	fi
+	command_args+=" $(net_args) $(disk_args) $(cdrom_args)"
+
+	if yesno "$EINFO_VERBOSE"; then
+		einfo "Command: $command $(echo $command_args)"
+	fi
+
+	checkpath -d -m 0750 -o $user:$group "$(dirname $pidfile)" \
+		"$(dirname $monitor_socket)" "$(dirname $logfile)"
+	return 0
+}
+
+start_post() {
+	ewaitfile 5 "$monitor_socket" || {
+		eerror 'Monitor socket has not been created!'; return 0
+	}
+	if [ -n "$vnc_password" ]; then
+		qemush "set_password vnc $vnc_password" || eerror 'Failed to set VNC password!'
+	fi
+}
+
+stop() {
+	local count=$shutdown_timeout
+
+	ebegin "Stopping $name"
+	qemush 'system_powerdown' || count=0
+
+	while ! $(status &>/dev/null) && [[ $count > 0 ]]; do
+		sleep 1
+		echo -n '.'
+		count=$(( count - 1 ))
+	done
+	echo ''
+
+	if [ $count -eq 0 ]; then
+		ewarn 'Failed to shutdown VM gracefully, stopping it with force'
+
+		start-stop-daemon --stop \
+			--quiet --retry 'SIGKILL/5' \
+			--pidfile "$pidfile" --exec "$command"
+		eend $?
+	else
+		eend 0
+	fi
+}
+
+stop_post() {
+	[ -S "$monitor_socket" ] && rm -f "$monitor_socket"
+	[ -f "$pidfile" ] && rm -f "$pidfile"
+	return 0
+}
+
+forcestop() {
+	ebegin "Force stopping $name"
+
+	start-stop-daemon --stop \
+		--quiet --retry 'SIGKILL/3' \
+		--pidfile "$pidfile" --exec "$command"
+	local _status=$?
+
+	if [ $_status -eq 0 ]; then
+		if service_started "$RC_SVCNAME"; then
+			mark_service_stopped "$RC_SVCNAME"
+		fi
+		stop_post
+	fi
+
+	eend $_status
+}
+
+reset() {
+	ebegin "Reseting $name"
+
+	qemush 'system_reset'
+	eend $?
+}
+
+#-------------------------------- Helpers -------------------------------
+
+disk_args() {
+	local idx; for idx in {0..9}; do
+		# comma-separated key=value pairs; contains trailing comma if not empty
+		local opts=$(set | grep -Po "^disk${idx}_\K(.*)$" | tr $'\n' ',')
+
+		if [ -n "$opts" ]; then
+			echo "-drive id=hd${idx},${opts}media=disk,if=none"
+			echo "-device scsi-hd,drive=hd${idx},scsi-id=${idx}"
+		fi
+	done
+}
+
+cdrom_args() {
+	local idx; for idx in {0..9}; do
+		local file=$(getval "cdrom${idx}_file")
+
+		if [ -n "$file" ]; then
+			echo "-drive id=cdr${idx},media=cdrom,if=none,file='$file',readonly,cache=none"
+			echo "-device ide-cd,drive=cdr${idx}"
+		fi
+	done
+}
+
+net_args() {
+	local idx; for idx in {0..9}; do
+		local netid="net${idx}"
+
+		if [ -n "${!netid}" ]; then
+			# comma-separated key=value pairs; contains trailing comma if not empty
+			local opts=$(set | grep -Po "^net${idx}_\K(.*)$" | grep -v '^mac=.*$')
+			echo "-netdev ${!netid},${opts}id=hostnet${idx}"
+
+			local mac=$(getval ${netid}_mac || gen_macaddr ${vm_name}%${idx})
+			echo "-device virtio-net-pci,id=${netid},netdev=hostnet${idx},mac=${mac}"
+		fi
+	done
+}
+
+qemush() {
+	local IFS=$'\n'
+	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" 1>/dev/null
+}
+
+gen_macaddr() {
+	echo -n "$1" | md5sum | sed -E 's/^(..)(..)(..)(..).*$/52:54:\1:\2:\3:\4/'
+}
+
+getval() {
+	[ -n "${!1}" ] && echo "${!1}" || return 1
+}

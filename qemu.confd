@@ -1,0 +1,137 @@
+# vim: set ft=sh:
+
+###############################################################################
+#                      YOU SHOULD NOT MODIFY THIS FILE!                       #
+#                                                                             #
+#        Create a copy named after the virtual machine you want to run        #
+#   (with prefix "qemu.") and modify that instead (and remove this notice).   #
+###############################################################################
+
+##
+# This is example configuration for qemu runscript. It contain all
+# user-definable variables with their default values. If the default value is
+# suitable for you, then you can omit that variable in your VM config.
+#
+
+# Name of this VM. This is always derived from the runscript name
+# (e.g. qemu.foo -> foo)!
+#vm_name="${RC_SVCNAME#qemu.}"
+
+# User to run the QEMU process.
+#user="qemu"
+
+# Group to run the QEMU process.
+#group="qemu"
+
+# Where to store the QEMU process PID.
+#pidfile="/run/qemu/${vm_name}/qemu.pid"
+
+# Where to redirect stdout/stderr of the QEMU process.
+#logfile="/var/log/qemu/${vm_name}.log"
+
+# How many seconds to wait after sending "system_shutdown" before force
+# stopping the VM.
+#shutdown_timeout=60
+
+
+# How many CPU cores to allocate for the VM on startup.
+#cpus="1"
+
+# Maximum number of hotpluggable CPU cores, i.e. how many CPUs may be allocated
+# for the VM after startup from the monitor console.
+#cpus_max="$cpus"
+
+# Amount of RAM to allocate for the VM on startup. Use suffix "M" or "G" for
+# megabytes or gigabytes respectively.
+#memory="1G"
+
+# Maximum amount of RAM the VM can reach, i.e. how much memory may be allocated
+# for the VM after startup from the monitor console. Use suffix "M" or "G" for
+# megabytes or gigabytes respectively.
+#memory_max="$memory"
+
+# Number of memory slots for additional hotpluggable memory. If it's 0, then
+# memory hotplug won't be enabled and the VM startup RAM will never increase.
+#memory_slots=2
+
+# Whether to use hugetlbfs mounted on $hugepages_path for the VM RAM.
+#memory_hugepages="no"
+
+# Mount point of the hugetlbfs.
+#hugepages_path="/dev/hugepages"
+
+# Start the RTC at the current UTC, or local time? Use "utc", or "localtime".
+# Note: "localtime" is required for correct date in Windows.
+#rtc_base="utc"
+
+# Select type of VGA card to emulate. Valid values for type are: cirrus, std,
+# vmware, qxl, tcx, cg3, and none. See option -vga in man qemu for more
+# information.
+#vga="std"
+
+# Address to listen for VNC (TCP) connections.
+#vnc_listen="0.0.0.0"
+
+# VNC display number. If empty, then VNC will be disabled.
+# Note: By convention the TCP port is 5900+$vnc_display.
+#vnc_display=
+
+# Password required for client connections on VNC. If empty, then password
+# base authentication is disabled.
+#vnc_password=
+
+# Path of the QEMU monitor socket for this VM.
+#monitor_socket="/run/qemu/${vm_name}/monitor.sock"
+
+# See description below.
+net0="bridge"
+
+
+##
+# Network interfaces
+#
+# You can specify up to 10 NICs using variables netX and netX_OPTION. For list
+# of available options open man qemu and find -netdev.
+#
+# MAC address of the NIC is automatically generated from the VM name and
+# sequence number of the NIC, so it's always the same for particular VM and NIC
+# and it should be unique as well. You can override the MAC address with
+# variable netX_mac.
+#
+# These NICs will use driver virtio-net-pci (requires virtio-net driver to be
+# installed in the VM).
+#
+# Example:
+#   net0="bridge"
+#   net0_mac="52:54:12:34:56:78"
+#
+
+##
+# Hard-drives
+#
+# You can specify up to 10 drives using variables diskX_OPTION. For list of
+# available options open man qemu and find -drive.
+#
+# These drives will use driver scsi-disk connected to virtio-scsi-pci (requires
+# virtio-scsi drivers to be installed in the VM).
+#
+# Example:
+#   disk0_file="/dev/mapper/${vm_name}-disk0"
+#   disk0_format="raw"
+#   disk0_cache="none"
+#
+#   disk1_file="/var/lib/qemu/${vm_name}/disk0.qcow2"
+#   disk1_format="qcow2"
+#
+
+##
+# CD-ROMs
+#
+# You can specify up to 10 cdrom drives using variables cdromX_file.
+#
+# These drives will use driver ide-cd connected to an emulated IDE controller
+# (no virtio). This is slow, but doesn't require any special drivers in the VM.
+#
+# Example:
+#   cdrom0_file="/var/lib/qemu/virtio-win.iso"
+#
