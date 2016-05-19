@@ -1,19 +1,18 @@
-#!/bin/bash
+#!/bin/sh
 # vim: set ts=4:
 
 if [ -z "$1" ]; then
-	echo "Usage: virsh <VM-NAME | SOCKET-PATH> [command ...]"
+	echo "Usage: virsh <VM-NAME | SOCKET-PATH> [command ...]" 1>&2
 	exit 1
 fi
 
-if [[ "$1" = /* ]]; then
-	socket_path="$1"
-else
-	socket_path="/run/qemu/$1/monitor.sock"
-fi
+case "$1" in
+	/*) socket_path="$1" ;;
+	*) socket_path="/run/qemu/$1/monitor.sock" ;;
+esac
 
 if [ ! -S "$socket_path" ]; then
-	echo "Error: QEMU monitor socket $socket_path does not exist!" >&2
+	echo "Error: QEMU monitor socket $socket_path does not exist!" 1>&2
 	exit 2
 fi
 

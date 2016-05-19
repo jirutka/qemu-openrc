@@ -1,7 +1,7 @@
-#!/sbin/runscript
-# vim: set ft=bash: ts=4:
+#!/sbin/openrc-run
+# vim: set ft=sh: ts=4:
 
-vm_name=${RC_SVCNAME#qemu.}
+vm_name="${RC_SVCNAME#qemu.}"
 
 : ${user:=qemu}
 : ${group:=qemu}
@@ -20,19 +20,18 @@ vm_name=${RC_SVCNAME#qemu.}
 : ${vnc_listen:=0.0.0.0}
 : ${hugepages_path:=/dev/hugepages}
 : ${monitor_socket:=/run/qemu/${vm_name}/monitor.sock}
-: ${net0:=bridge}
-
-extra_commands='forcestop'
-extra_started_commands='reset'
 
 name="VM $vm_name"
 describe="Qemu/KVM virtual machine \"$vm_name\""
 describe_forcestop='Force stop the system'
 describe_reset='Reset the system'
 
+extra_commands='forcestop'
+extra_started_commands='reset'
+
 command='/usr/bin/qemu-system-x86_64'
 command_args="
-	-name '$vm_name',process='$vm_name'
+	-name $vm_name,process=$vm_name
 	-nodefaults
 	-no-user-config
 	-cpu host
@@ -45,12 +44,14 @@ command_args="
 	-vga $vga
 	-device virtio-rng-pci
 	-device virtio-scsi-pci,id=scsi
-	-monitor 'unix:$monitor_socket,server,nowait'"
+	-monitor unix:$monitor_socket,server,nowait"
 command_background='yes'
 
 start_stop_daemon_args="
-	--user $user --wait 100
-	--stdout '$logfile' --stderr '$logfile'"
+	--user=$user
+	--wait=100
+	--stdout=$logfile
+	--stderr=$logfile"
 
 depend() {
 	need net
@@ -69,19 +70,23 @@ start_pre() {
 	fi
 
 	if yesno "$memory_hugepages"; then
-		command_args+=" -mem-path '$hugepages_path'"
+		command_args_push "-mem-path $hugepages_path"
 	fi
 	if [ -n "$vnc_display" ]; then
-		command_args+=" -display vnc=${vnc_listen}:${vnc_display}${vnc_password:+,password}"
+		command_args_push "-display vnc=${vnc_listen}:${vnc_display}${vnc_password:+",password"}"
 	fi
-	command_args+=" $(net_args) $(disk_args) $(cdrom_args)"
+	command_args_push "$(net_args) $(disk_args) $(cdrom_args)"
 
 	if yesno "$EINFO_VERBOSE"; then
 		einfo "Command: $command $(echo $command_args)"
 	fi
 
-	checkpath -d -m 0750 -o $user:$group "$(dirname $pidfile)" \
-		"$(dirname $monitor_socket)" "$(dirname $logfile)"
+	local path; for path in "$pidfile" "$monitor_socket" "$logfile"; do
+		# checkpath doesn't create intermediate directories
+		mkdir -p "$(dirname "$path")"
+		checkpath -d -m 0750 -o $user:$group "$(dirname "$path")"
+	done
+
 	return 0
 }
 
@@ -95,14 +100,14 @@ start_post() {
 }
 
 stop() {
-	local count=$shutdown_timeout
+	local count="$shutdown_timeout"
 
 	ebegin "Stopping $name"
 	qemush 'system_powerdown' || count=0
 
-	while ! $(status &>/dev/null) && [[ $count > 0 ]]; do
+	while ! $(status 1>/dev/null 2>&1) && [ $count -gt 0 ]; do
 		sleep 1
-		echo -n '.'
+		printf '.'
 		count=$(( count - 1 ))
 	done
 	echo ''
@@ -131,7 +136,7 @@ forcestop() {
 	start-stop-daemon --stop \
 		--quiet --retry 'SIGKILL/3' \
 		--pidfile "$pidfile" --exec "$command"
-	local _status=$?
+	local _status="$?"
 
 	if [ $_status -eq 0 ]; then
 		if service_started "$RC_SVCNAME"; then
@@ -152,10 +157,16 @@ reset() {
 
 #-------------------------------- Helpers -------------------------------
 
+command_args_push() {
+	command_args="$command_args $@"
+}
+
 disk_args() {
-	local idx; for idx in {0..9}; do
+	local idx opts
+
+	for idx in $(seq 0 9); do
 		# comma-separated key=value pairs; contains trailing comma if not empty
-		local opts=$(set | grep -Po "^disk${idx}_\K(.*)$" | tr $'\n' ',')
+		opts=$(set | sed -En "s/^disk${idx}_(.*)/\1/p" | tr $'\n' ',')
 
 		if [ -n "$opts" ]; then
 			echo "-drive id=hd${idx},${opts}media=disk,if=none"
@@ -165,8 +176,10 @@ disk_args() {
 }
 
 cdrom_args() {
-	local idx; for idx in {0..9}; do
-		local file=$(getval "cdrom${idx}_file")
+	local idx file
+
+	for idx in $(seq 0 9); do
+		file=$(getval "cdrom${idx}_file")
 
 		if [ -n "$file" ]; then
 			echo "-drive id=cdr${idx},media=cdrom,if=none,file='$file',readonly,cache=none"
@@ -176,15 +189,18 @@ cdrom_args() {
 }
 
 net_args() {
-	local idx; for idx in {0..9}; do
-		local netid="net${idx}"
+	local idx netid netdev opts mac
 
-		if [ -n "${!netid}" ]; then
+	for idx in $(seq 0 9); do
+		netid="net${idx}"
+		netdev=$(getval "$netid")
+
+		if [ -n "$netdev" ]; then
 			# comma-separated key=value pairs; contains trailing comma if not empty
-			local opts=$(set | grep -Po "^net${idx}_\K(.*)$" | grep -v '^mac=.*$')
-			echo "-netdev ${!netid},${opts}id=hostnet${idx}"
+			opts=$(set | sed -En "s/^net${idx}_(.*)/\1/p" | grep -v '^mac=.*$')
+			echo "-netdev ${netdev},${opts}id=hostnet${idx}"
 
-			local mac=$(getval ${netid}_mac || gen_macaddr ${vm_name}%${idx})
+			mac=$(getval ${netid}_mac "$(gen_macaddr ${vm_name}%${idx})")
 			echo "-device virtio-net-pci,id=${netid},netdev=hostnet${idx},mac=${mac}"
 		fi
 	done
@@ -196,9 +212,12 @@ qemush() {
 }
 
 gen_macaddr() {
-	echo -n "$1" | md5sum | sed -E 's/^(..)(..)(..)(..).*$/52:54:\1:\2:\3:\4/'
+	printf "$1" | md5sum | sed -E 's/^(..)(..)(..)(..).*$/52:54:\1:\2:\3:\4/'
 }
 
 getval() {
-	[ -n "${!1}" ] && echo "${!1}" || return 1
+	local var_name="$1"
+	local default="${2:-}"
+
+	eval "echo \${$var_name:-$default}"
 }
