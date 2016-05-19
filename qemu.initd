@@ -39,7 +39,6 @@ command_args="
 	-realtime mlock=off
 	-rtc base=$rtc_base
 	-smp cpus=$cpus,maxcpus=$cpus_max
-	-m size=$memory,slots=$memory_slots,maxmem=$memory_max
 	-balloon virtio
 	-vga $vga
 	-device virtio-rng-pci
@@ -68,6 +67,11 @@ start_pre() {
 		eerror '    cp /etc/conf.d/qemu /etc/conf.d/qemu.example'
 		return 1
 	fi
+
+	if [ "$memory" = "$memory_max" ]; then
+		memory_slots="0"
+	fi
+	command_args_push "-m size=$memory,slots=$memory_slots,maxmem=$memory_max"
 
 	if yesno "$memory_hugepages"; then
 		command_args_push "-mem-path $hugepages_path"

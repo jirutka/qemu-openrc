@@ -52,6 +52,7 @@
 
 # Number of memory slots for additional hotpluggable memory. If it's 0, then
 # memory hotplug won't be enabled and the VM startup RAM will never increase.
+# If $memory == $memory_max, then this is forced to 0.
 #memory_slots=2
 
 # Whether to use hugetlbfs mounted on $hugepages_path for the VM RAM.
