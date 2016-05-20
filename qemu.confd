@@ -136,3 +136,6 @@ net0="bridge"
 # Example:
 #   cdrom0_file="/var/lib/qemu/virtio-win.iso"
 #
+
+# Any additional arguments to be passed to qemu-system-x86_64 command.
+#extra_args=""

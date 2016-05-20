@@ -20,6 +20,7 @@ vm_name="${RC_SVCNAME#qemu.}"
 : ${vnc_listen:=0.0.0.0}
 : ${hugepages_path:=/dev/hugepages}
 : ${monitor_socket:=/run/qemu/${vm_name}/monitor.sock}
+: ${extra_args:=}
 
 name="VM $vm_name"
 describe="Qemu/KVM virtual machine \"$vm_name\""
@@ -79,7 +80,7 @@ start_pre() {
 	if [ -n "$vnc_display" ]; then
 		command_args_push "-display vnc=${vnc_listen}:${vnc_display}${vnc_password:+",password"}"
 	fi
-	command_args_push "$(net_args) $(disk_args) $(cdrom_args)"
+	command_args_push "$(net_args) $(disk_args) $(cdrom_args) $extra_args"
 
 	if yesno "$EINFO_VERBOSE"; then
 		einfo "Command: $command $(echo $command_args)"
