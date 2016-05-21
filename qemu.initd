@@ -7,7 +7,7 @@ vm_name="${RC_SVCNAME#qemu.}"
 : ${group:=qemu}
 : ${pidfile:=/run/qemu/${vm_name}/qemu.pid}
 : ${logfile:=/var/log/qemu/${vm_name}.log}
-: ${shutdown_timeout:=60}
+: ${shutdown_timeout:=40}
 
 : ${system_type:=x86_64}
 : ${enable_kvm:=yes}

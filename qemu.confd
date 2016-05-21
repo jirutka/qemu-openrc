@@ -31,7 +31,7 @@
 
 # How many seconds to wait after sending "system_shutdown" before force
 # stopping the VM.
-#shutdown_timeout=60
+#shutdown_timeout=40
 
 
 # QEMU system to emulate; you need qemu-system-${system_type} binary.
