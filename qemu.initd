@@ -153,20 +153,20 @@ forcestop() {
 	start-stop-daemon --stop \
 		--quiet --retry 'SIGKILL/3' \
 		--pidfile "$pidfile" --exec "$command"
-	local _status="$?"
+	local retval="$?"
 
-	if [ $_status -eq 0 ]; then
+	if [ $retval -eq 0 ]; then
 		if service_started "$RC_SVCNAME"; then
 			mark_service_stopped "$RC_SVCNAME"
 		fi
 		stop_post
 	fi
 
-	eend $_status
+	eend $retval
 }
 
 reset() {
-	ebegin "Reseting $name"
+	ebegin "Resetting $name"
 
 	qemush 'system_reset'
 	eend $?
