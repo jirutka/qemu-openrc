@@ -9,6 +9,9 @@ vm_name="${RC_SVCNAME#qemu.}"
 : ${logfile:=/var/log/qemu/${vm_name}.log}
 : ${shutdown_timeout:=60}
 
+: ${system_type:=x86_64}
+: ${enable_kvm:=yes}
+: ${cpu_model:=host}
 : ${smp_cpus:=1}
 : ${smp_cpus_max:=$smp_cpus}
 : ${memory:=1G}
@@ -23,20 +26,19 @@ vm_name="${RC_SVCNAME#qemu.}"
 : ${extra_args:=}
 
 name="VM $vm_name"
-describe="Qemu/KVM virtual machine \"$vm_name\""
+describe="QEMU virtual machine \"$vm_name\""
 describe_forcestop='Force stop the system'
 describe_reset='Reset the system'
 
 extra_commands='forcestop'
 extra_started_commands='reset'
 
-command='/usr/bin/qemu-system-x86_64'
+command="/usr/bin/qemu-system-$system_type"
 command_args="
 	-name $vm_name,process=$vm_name
 	-nodefaults
 	-no-user-config
-	-cpu host
-	-enable-kvm
+	-cpu $cpu_model
 	-realtime mlock=off
 	-rtc base=$rtc_base
 	-smp cpus=$smp_cpus,maxcpus=$smp_cpus_max
@@ -52,6 +54,8 @@ start_stop_daemon_args="
 	--wait=100
 	--stdout=$logfile
 	--stderr=$logfile"
+
+required_files="$command"
 
 depend() {
 	need net
@@ -69,6 +73,9 @@ start_pre() {
 		return 1
 	fi
 
+	if yesno "$enable_kvm"; then
+		command_args_push '-enable-kvm'
+	fi
 	if [ "$memory" = "$memory_max" ]; then
 		memory_slots="0"
 	fi

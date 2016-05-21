@@ -34,6 +34,16 @@
 #shutdown_timeout=60
 
 
+# QEMU system to emulate; you need qemu-system-${system_type} binary.
+#system_type="x86_64"
+
+# Whether to enable KVM (hardware-assisted virtualization).
+#enable_kvm="yes"
+
+# Select CPU model. Value "host" is allowed only for KVM.
+# Run `qemu-system-$system_type -cpu help` for list of options.
+#cpu_model="host"
+
 # Simulate an SMP system with n CPUs.
 #smp_cpus="1"
 
