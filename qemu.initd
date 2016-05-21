@@ -105,7 +105,7 @@ start_pre() {
 
 start_post() {
 	ewaitfile 5 "$monitor_socket" || {
-		eerror 'Monitor socket has not been created!'; return 0
+		eerror 'Monitor socket has not been created!'; return 1
 	}
 	if [ -n "$vnc_password" ]; then
 		qemush "set_password vnc $vnc_password" || eerror 'Failed to set VNC password!'
