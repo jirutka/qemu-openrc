@@ -59,6 +59,7 @@ required_files="$command"
 
 depend() {
 	need net
+	after iptables ip6tables ebtables
 }
 
 start_pre() {
