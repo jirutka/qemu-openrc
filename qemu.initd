@@ -112,28 +112,33 @@ start_post() {
 }
 
 stop() {
-	local count="$shutdown_timeout"
+	local count=0
+	local retval=0
 
 	ebegin "Stopping $name"
-	qemush 'system_powerdown' || count=0
 
-	while ! $(status 1>/dev/null 2>&1) && [ $count -gt 0 ]; do
-		sleep 1
-		printf '.'
-		count=$(( count - 1 ))
-	done
-	echo ''
+	if is_running && qemush 'system_powerdown'; then
+		count="$shutdown_timeout"
+
+		printf "   Waiting $count seconds for VM shutdown "
+		while is_running && [ $count -gt 0 ]; do
+			sleep 1
+			printf '.'
+			count=$(( count - 1 ))
+		done
+		printf '\n'
+	fi
 
 	if [ $count -eq 0 ]; then
-		ewarn 'Failed to shutdown VM gracefully, stopping it with force'
+		ewarn 'Failed to shutdown VM gracefully using ACPI, stopping it with force'
 
 		start-stop-daemon --stop \
 			--quiet --retry 'SIGKILL/5' \
 			--pidfile "$pidfile" --exec "$command"
-		eend $?
-	else
-		eend 0
+		retval="$?"
 	fi
+
+	eend $retval
 }
 
 stop_post() {
@@ -168,6 +173,10 @@ reset() {
 }
 
 #-------------------------------- Helpers -------------------------------
+
+is_running() {
+	[ -e "$pidfile" ] && kill -0 "$(cat "$pidfile")"
+}
 
 command_args_push() {
 	command_args="$command_args $@"
