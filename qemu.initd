@@ -9,8 +9,8 @@ vm_name="${RC_SVCNAME#qemu.}"
 : ${logfile:=/var/log/qemu/${vm_name}.log}
 : ${shutdown_timeout:=60}
 
-: ${cpus:=1}
-: ${cpus_max:=$cpus}
+: ${smp_cpus:=1}
+: ${smp_cpus_max:=$smp_cpus}
 : ${memory:=1G}
 : ${memory_max:=$memory}
 : ${memory_slots:=2}
@@ -39,7 +39,7 @@ command_args="
 	-enable-kvm
 	-realtime mlock=off
 	-rtc base=$rtc_base
-	-smp cpus=$cpus,maxcpus=$cpus_max
+	-smp cpus=$smp_cpus,maxcpus=$smp_cpus_max
 	-balloon virtio
 	-vga $vga
 	-device virtio-rng-pci

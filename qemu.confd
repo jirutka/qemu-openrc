@@ -34,12 +34,12 @@
 #shutdown_timeout=60
 
 
-# How many CPU cores to allocate for the VM on startup.
-#cpus="1"
+# Simulate an SMP system with n CPUs.
+#smp_cpus="1"
 
-# Maximum number of hotpluggable CPU cores, i.e. how many CPUs may be allocated
-# for the VM after startup from the monitor console.
-#cpus_max="$cpus"
+# Maximum number of hotpluggable CPUs, i.e. how many CPUs may be added to the
+# VM after startup from the monitor console.
+#smp_cpus_max="$smp_cpus"
 
 # Amount of RAM to allocate for the VM on startup. Use suffix "M" or "G" for
 # megabytes or gigabytes respectively.
