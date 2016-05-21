@@ -94,9 +94,6 @@
 # Path of the QEMU monitor socket for this VM.
 #monitor_socket="/run/qemu/${vm_name}/monitor.sock"
 
-# See description below.
-net0="bridge"
-
 
 ##
 # Network interfaces
@@ -114,8 +111,10 @@ net0="bridge"
 #
 # Example:
 #   net0="bridge"
+#   net0_br="br0"
 #   net0_mac="52:54:12:34:56:78"
 #
+net0="bridge"
 
 ##
 # Hard-drives

@@ -211,21 +211,40 @@ cdrom_args() {
 }
 
 net_args() {
-	local idx netid netdev opts mac
+	local idx net_id net_type opts mac
 
 	for idx in $(seq 0 9); do
-		netid="net${idx}"
-		netdev=$(getval "$netid")
+		net_id="net${idx}"
+		net_type=$(getval "$net_id")
 
-		if [ -n "$netdev" ]; then
+		if [ "$net_type" = 'bridge' ]; then
+			check_bridge "$(getval ${net_id}_br br0)"
+		fi
+
+		if [ -n "$net_type" ]; then
 			# comma-separated key=value pairs; contains trailing comma if not empty
 			opts=$(set | sed -En "s/^net${idx}_(.*)/\1/p" | grep -v '^mac=.*$')
-			echo "-netdev ${netdev},${opts}id=hostnet${idx}"
+			echo "-netdev ${net_type},${opts}id=hostnet${idx}"
 
-			mac=$(getval ${netid}_mac "$(gen_macaddr ${vm_name}%${idx})")
-			echo "-device virtio-net-pci,id=${netid},netdev=hostnet${idx},mac=${mac}"
+			mac=$(getval ${net_id}_mac "$(gen_macaddr ${vm_name}%${idx})")
+			echo "-device virtio-net-pci,id=${net_id},netdev=hostnet${idx},mac=${mac}"
 		fi
 	done
+}
+
+check_bridge() {
+	local name="$1"
+
+	if [ ! -e "/sys/class/net/$name" ]; then
+		ewarn "WARNING: Bridge $name does not exist"
+		return 1
+	fi
+
+	if [ "$user" != 'root' ] \
+			&& ! grep -q "^allow\s*$name\W*" /etc/qemu/bridge.conf 2>/dev/null; then
+		ewarn "WARNING: Bridge $name must be allowed in /etc/qemu/bridge.conf"
+		return 1
+	fi
 }
 
 qemush() {
