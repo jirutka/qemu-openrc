@@ -1,17 +1,20 @@
+# /etc/conf.d/qemu
 # vim: set ft=sh:
 
 ###############################################################################
-#                      YOU SHOULD NOT MODIFY THIS FILE!                       #
+#    This configuration file defines default options for all QEMU machines    #
+#                        managed by qemu.* runscripts.                        #
 #                                                                             #
-#        Create a copy named after the virtual machine you want to run        #
-#   (with prefix "qemu.") and modify that instead (and remove this notice).   #
+#       Specific configuration for each VM should be defined in a file        #
+#                          /etc/conf.d/qemu.<NAME>.                           #
 ###############################################################################
 
-##
-# This is example configuration for qemu runscript. It contain all
+#
+# This is an example configuration for qemu runscript. It contain all
 # user-definable variables with their default values. If the default value is
 # suitable for you, then you can omit that variable in your VM config.
 #
+
 
 # Name of this VM. This is always derived from the runscript name
 # (e.g. qemu.foo -> foo)!
@@ -148,3 +151,7 @@ net0="bridge"
 
 # Any additional arguments to be passed to qemu-system-x86_64 command.
 #extra_args=""
+
+# Specify service dependencies. You can use the same directives as in the
+# depend() function, but as variables prefixed by "rc_" (e.g. rc_need, rc_use).
+#rc_need=""
