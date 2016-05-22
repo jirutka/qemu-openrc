@@ -1,12 +1,12 @@
 #!/sbin/openrc-run
 # vim: set ft=sh: ts=4:
 
-vm_name="${RC_SVCNAME#qemu.}"
+VM_NAME="${RC_SVCNAME#qemu.}"
 
 : ${user:=qemu}
 : ${group:=qemu}
-: ${pidfile:=/run/qemu/${vm_name}/qemu.pid}
-: ${logfile:=/var/log/qemu/${vm_name}.log}
+: ${pidfile:=/run/qemu/${VM_NAME}/qemu.pid}
+: ${logfile:=/var/log/qemu/${VM_NAME}.log}
 : ${shutdown_timeout:=40}
 
 : ${system_type:=x86_64}
@@ -22,11 +22,11 @@ vm_name="${RC_SVCNAME#qemu.}"
 : ${vga:=std}
 : ${vnc_listen:=0.0.0.0}
 : ${hugepages_path:=/dev/hugepages}
-: ${monitor_socket:=/run/qemu/${vm_name}/monitor.sock}
+: ${monitor_socket:=/run/qemu/${VM_NAME}/monitor.sock}
 : ${extra_args:=}
 
-name="VM $vm_name"
-describe="QEMU virtual machine \"$vm_name\""
+name="VM $VM_NAME"
+describe="QEMU virtual machine \"$VM_NAME\""
 describe_forcestop='Force stop the system'
 describe_reset='Reset the system'
 
@@ -35,7 +35,7 @@ extra_started_commands='reset'
 
 command="/usr/bin/qemu-system-$system_type"
 command_args="
-	-name $vm_name,process=$vm_name
+	-name $VM_NAME,process=$VM_NAME
 	-nodefaults
 	-no-user-config
 	-cpu $cpu_model
@@ -226,7 +226,7 @@ net_args() {
 			opts=$(set | sed -En "s/^net${idx}_(.*)/\1/p" | grep -v '^mac=.*$')
 			echo "-netdev ${net_type},${opts}id=hostnet${idx}"
 
-			mac=$(getval ${net_id}_mac "$(gen_macaddr ${vm_name}%${idx})")
+			mac=$(getval ${net_id}_mac "$(gen_macaddr ${VM_NAME}%${idx})")
 			echo "-device virtio-net-pci,id=${net_id},netdev=hostnet${idx},mac=${mac}"
 		fi
 	done

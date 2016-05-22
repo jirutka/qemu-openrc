@@ -1,12 +1,13 @@
 # /etc/conf.d/qemu
 # vim: set ft=sh:
+# source: https://github.com/jirutka/qemu-openrc
 
 ###############################################################################
 #    This configuration file defines default options for all QEMU machines    #
 #                        managed by qemu.* runscripts.                        #
 #                                                                             #
 #       Specific configuration for each VM should be defined in a file        #
-#                          /etc/conf.d/qemu.<NAME>.                           #
+#                         /etc/conf.d/qemu.<VM_NAME>.                         #
 ###############################################################################
 
 #
@@ -16,10 +17,6 @@
 #
 
 
-# Name of this VM. This is always derived from the runscript name
-# (e.g. qemu.foo -> foo)!
-#vm_name="${RC_SVCNAME#qemu.}"
-
 # User to run the QEMU process.
 #user="qemu"
 
@@ -27,10 +24,10 @@
 #group="qemu"
 
 # Where to store the QEMU process PID.
-#pidfile="/run/qemu/${vm_name}/qemu.pid"
+#pidfile="/run/qemu/${VM_NAME}/qemu.pid"
 
 # Where to redirect stdout/stderr of the QEMU process.
-#logfile="/var/log/qemu/${vm_name}.log"
+#logfile="/var/log/qemu/${VM_NAME}.log"
 
 # How many seconds to wait after sending "system_shutdown" before force
 # stopping the VM.
@@ -95,7 +92,7 @@
 #vnc_password=
 
 # Path of the QEMU monitor socket for this VM.
-#monitor_socket="/run/qemu/${vm_name}/monitor.sock"
+#monitor_socket="/run/qemu/${VM_NAME}/monitor.sock"
 
 
 ##
@@ -129,11 +126,11 @@ net0="bridge"
 # virtio-scsi drivers to be installed in the VM).
 #
 # Example:
-#   disk0_file="/dev/mapper/${vm_name}-disk0"
+#   disk0_file="/dev/mapper/${VM_NAME}-disk0"
 #   disk0_format="raw"
 #   disk0_cache="none"
 #
-#   disk1_file="/var/lib/qemu/${vm_name}/disk0.qcow2"
+#   disk1_file="/var/lib/qemu/${VM_NAME}/disk0.qcow2"
 #   disk1_format="qcow2"
 #
 
