@@ -2,7 +2,7 @@
 # vim: set ts=4:
 
 if [ -z "$1" ]; then
-	echo "Usage: virsh <VM-NAME | SOCKET-PATH> [command ...]" 1>&2
+	echo "Usage: $0 <VM-NAME | SOCKET-PATH> [command ...]" 1>&2
 	exit 1
 fi
 
@@ -12,7 +12,7 @@ case "$1" in
 esac
 
 if [ ! -S "$socket_path" ]; then
-	echo "Error: QEMU monitor socket $socket_path does not exist!" 1>&2
+	echo "ERROR: QEMU monitor socket $socket_path does not exist!" 1>&2
 	exit 2
 fi
 
@@ -26,4 +26,4 @@ else
 	echo ''
 	socat -,raw,echo=0,escape=0x0f "UNIX-CONNECT:$socket_path"
 fi
-echo ''
+printf '\n'
