@@ -2,7 +2,7 @@
 # vim: set ft=sh: ts=4:
 # source: https://github.com/jirutka/qemu-openrc
 
-VERSION=''
+VERSION='0.3.0'
 VM_NAME="${RC_SVCNAME#qemu.}"
 
 : ${user:=qemu}
