@@ -1,14 +1,45 @@
 #!/bin/sh
 # vim: set ts=4:
+set -e
 
-if [ -z "$1" ]; then
-	echo "Usage: $0 <VM-NAME | SOCKET-PATH> [command ...]" 1>&2
-	exit 1
-fi
+SCRIPT_NAME="$(basename "$0")"
+VERSION=''
+
+HELP_MESSAGE="qemu-openrc $VERSION
+
+Connect to a monitor console of a QEMU virtual machine. It's like virsh from
+libvirt, but provided directly by QEMU.
+
+Usage:
+  $SCRIPT_NAME <VM_NAME | SOCKET_PATH> [command ...]
+  $SCRIPT_NAME [-h | --help | -V | --version]
+
+VM_NAME      Name of the QEMU machine to connect (expects QEMU monitor
+             socket at /run/qemu/\${VM_NAME}/monitor.sock).
+SOCKET_PATH  Path of the QEMU's monitor socket to connect.
+
+Project homepage: <https://github.com/jirutka/qemu-openrc>."
+
+socket_path=''
 
 case "$1" in
-	/*) socket_path="$1" ;;
-	*) socket_path="/run/qemu/$1/monitor.sock" ;;
+	-h | --help)
+		echo "$HELP_MESSAGE"
+		exit 0
+	;;
+	-V | --version)
+		echo "qemu-openrc $VERSION"
+		exit 0
+	;;
+	/*)
+		socket_path="$1"
+		break
+	;;
+	*)
+		[ -n "$1" ] || { echo "$HELP_MESSAGE"; exit 1; }
+		socket_path="/run/qemu/$1/monitor.sock"
+		break
+	;;
 esac
 
 if [ ! -S "$socket_path" ]; then
