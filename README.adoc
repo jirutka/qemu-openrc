@@ -1,3 +1,69 @@
 = OpenRC runscript for QEMU
 
-This is an opinionated OpenRC runscript for QEMU virtual machines.
+This is (opinionated) OpenRC runscript for QEMU virtual machines.
+
+____
+You don’t need https://libvirt.org[libvirt] and its https://libvirt.org/formatdomain.html[awful XML configs] to use QEMU/KVM!
+____
+
+
+== Requirements
+
+* https://wiki.gentoo.org/wiki/OpenRC[OpenRC]
+* Bash or Busybox’s ash (should work also with other POSIX shells)
+* http://www.dest-unreach.org/socat[socat]
+* Linux kernel with virtio drivers
++
+    CONFIG_HW_RANDOM_VIRTIO=y
+    CONFIG_SCSI_VIRTIO=y
+    CONFIG_VIRTIO=y
+    CONFIG_VIRTIO_BALLOON=y
+    CONFIG_VIRTIO_NET=y
+    CONFIG_VIRTIO_PCI=y
+
+
+== Installation
+
+=== Manually
+
+. Install socat:
++
+[source, sh]
+----
+emerge -av net-misc/socat  # on Gentoo
+apk add socat  # on Alpine
+----
+
+. Clone this repository and jump in:
++
+    git clone https://github.com/jirutka/qemu-openrc.git
+    cd qemu-openrc
+
+. Install runscript, example config and qemush utility:
++
+    ./install
++
+You may use variables `DESTDIR` and `PREFIX` to specify the target directories.
+
+
+== How to configure a new VM
+
+. Symlink runscript `qemu` for your new VM named `jarvis`:
++
+    cd /etc/init.d
+    ln -s qemu qemu.jarvis
+
+. Configure your new VM:
++
+    cd /etc/conf.d
+    cp qemu qemu.jarvis
+    vim qemu.jarvis
+
+. Start your new VM:
++
+    rc-service qemu.jarvis start
+
+
+== License
+
+This project is licensed under http://opensource.org/licenses/MIT/[MIT License].
