@@ -24,6 +24,11 @@ ____
 
 == Installation
 
+=== Gentoo
+
+. Add https://github.com/cvut/gentoo-overlay[CTU’s Gentoo Overlay] to your repos.conf or Layman (read https://github.com/cvut/gentoo-overlay#usage[howto]).
+. `emerge -av app-emulation/qemu-init-script`
+
 === Manually
 
 . Install socat:
