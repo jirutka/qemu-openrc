@@ -1,6 +1,8 @@
 #!/sbin/openrc-run
 # vim: set ft=sh: ts=4:
+# source: https://github.com/jirutka/qemu-openrc
 
+VERSION=''
 VM_NAME="${RC_SVCNAME#qemu.}"
 
 : ${user:=qemu}
@@ -30,7 +32,7 @@ describe="QEMU virtual machine \"$VM_NAME\""
 describe_forcestop='Force stop the system'
 describe_reset='Reset the system'
 
-extra_commands='forcestop'
+extra_commands='forcestop version'
 extra_started_commands='reset'
 
 command="/usr/bin/qemu-system-$system_type"
@@ -171,6 +173,10 @@ reset() {
 
 	qemush 'system_reset'
 	eend $?
+}
+
+version() {
+	echo "qemu-openrc $VERSION"
 }
 
 #-------------------------------- Helpers -------------------------------
