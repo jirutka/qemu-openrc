@@ -24,6 +24,13 @@ ____
 
 == Installation
 
+=== Alpine Linux
+
+. Add `edge/testing` repository (e.g. http://dl-cdn.alpinelinux.org/alpine/edge/testing) to `/etc/apk/repositories`, if you don’t have it yet, and run `apk update`.
+. Install https://pkgs.alpinelinux.org/package/edge/testing/x86_64/qemu-init-script[qemu-init-script]:
++
+    apk add qemu-init-script
+
 === Gentoo
 
 . Add https://github.com/cvut/gentoo-overlay[CTU’s Gentoo Overlay] to your repos.conf or Layman (read https://github.com/cvut/gentoo-overlay#usage[howto]).
