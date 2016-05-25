@@ -1,0 +1,108 @@
+#!/sbin/openrc-run
+# vim: set ft=sh: ts=4:
+# source: https://github.com/jirutka/qemu-openrc
+
+VERSION='0.3.0'
+
+#   <magic>                                  <offset>                                 <arch>
+FMTS="7f454c460201010000000000000000000200b7 ffffffffffffff00fffffffffffffffffeffff aarch64
+	7f454c4602010100000000000000000002002690 ffffffffffffff00fffffffffffffffffeffffff alpha
+	7f454c4601010100000000000000000002002800 ffffffffffffff00fffffffffffffffffeffffff arm
+	7f454c4601020100000000000000000000020028 ffffffffffffff00fffffffffffffffffffeffff armeb
+	7f454c4601010100000000000000000002004c00 ffffffffffffff00fffffffffffffffffeffffff cris
+	7f454c4602010100000000000000000002000300 fffffffffffefefffffffffffffffffffeffffff i386
+	7f454c4602010100000000000000000002000600 fffffffffffefefffffffffffffffffffeffffff i486
+	7f454c4601020100000000000000000000020004 ffffffffffffff00fffffffffffffffffffeffff m68k
+	7f454c460102010000000000000000000002baab ffffffffffffff00fffffffffffffffffffeffff microblaze
+	7f454c4601020100000000000000000000020008 ffffffffffffff00fefffffffffffffffffeffff mips
+	7f454c4602020100000000000000000000020008 ffffffffffffff00fefffffffffffffffffeffff mips64
+	7f454c4602010100000000000000000002000800 ffffffffffffff00fefffffffffffffffeffffff mips64el
+	7f454c4601010100000000000000000002000800 ffffffffffffff00fefffffffffffffffeffffff mipsel
+	7f454c4601020100000000000000000000020014 fffffffffffffffffffffffffffffffffffeffff ppc
+	7f454c4602020100000000000000000000020015 fffffffffffffffffffffffffffffffffffeffff ppc64
+	7f454c4601020100000000000000000000020015 fffffffffffffffffffffffffffffffffffeffff ppc64abi32
+	7f454c4602010100000000000000000002001500 fffffffffffffffffffffffffffffffffeffff00 ppc64le
+	7f454c4602020100000000000000000000020016 fffffffffffffffffffffffffffffffffffeffff s390x
+	7f454c4601010100000000000000000002002a00 ffffffffffffff00fffffffffffffffffeffffff sh4
+	7f454c460102010000000000000000000002002a ffffffffffffff00fffffffffffffffffffeffff sh4eb
+	7f454c4601020100000000000000000000020002 fffffffffffffffffffffffffffffffffffeffff sparc
+	7f454c4601020100000000000000000000020012 fffffffffffffffffffffffffffffffffffeffff sparc32plus
+	7f454c460202010000000000000000000002002b fffffffffffffffffffffffffffffffffffeffff sparc64"
+
+: ${binfmt_flags:=OC}
+: ${qemu_suffix:=-static}
+
+describe='Configure binfmt misc emulation via QEMU'
+
+extra_commands='version'
+describe_version='Show version of this script'
+
+
+depend() {
+	after procfs
+}
+
+start() {
+	ebegin 'Registering QEMU binaries in binfmt misc'
+
+	if [ ! -d /proc/sys/fs/binfmt_misc ]; then
+		modprobe binfmt_misc || eend $? || return 1
+	fi
+
+	if [ ! -f /proc/sys/fs/binfmt_misc/register ]; then
+		mount -t binfmt_misc binfmt_misc /proc/sys/fs/binfmt_misc >/dev/null \
+			|| eend $? || return 1
+	fi
+
+	local retval=0
+	local host_arch=$(normalize_arch "$(uname -m)")
+
+	local magic mask arch
+	echo "$FMTS" | while read magic mask arch; do
+		local qemu_arch=$(normalize_arch $arch)
+		local interpreter="/usr/bin/qemu-${qemu_arch}$qemu_suffix"
+
+		if [ "$host_arch" != "$qemu_arch" ] && [ -x "$interpreter" ]; then
+			register ":qemu-$arch:M:0:$(hex $magic):$(hex $mask):$interpreter:$binfmt_flags" || {
+				eerror "Failed to register binfmt qemu-$arch"
+				retval=1
+			}
+		fi
+	done
+
+	eend $retval
+}
+
+stop() {
+	ebegin 'Unregistering QEMU binaries in binfmt misc'
+
+	find /proc/sys/fs/binfmt_misc -name 'qemu-*' | while read path; do
+		echo -1 > "$path"
+	done
+
+	eend $?
+}
+
+version() {
+	echo "qemu-openrc $VERSION"
+}
+
+
+hex() {
+	echo "$1" | sed -E 's/(..)/\\x\1/g'
+}
+
+normalize_arch() {
+	case "$1" in
+		i[3456]86) echo 'i386';;
+		armv[4-9]*) echo 'arm';;
+		*) echo "$1";;
+	esac
+}
+
+register() {
+	if yesno "$EINFO_VERBOSE"; then
+		einfo "Registering $(echo "$1" | cut -d: -f2)"
+	fi
+	echo "$1" > /proc/sys/fs/binfmt_misc/register
+}

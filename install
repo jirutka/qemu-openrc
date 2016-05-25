@@ -7,6 +7,7 @@ set -eu
 cd "$(dirname "$0")"
 
 install -Dv -m 755 qemu.initd "$DESTDIR"/etc/init.d/qemu
+install -Dv -m 755 qemu-binfmt.initd "$DESTDIR"/etc/init.d/qemu-binfmt
 install -Dv -m 755 qemush "${DESTDIR}${PREFIX}"/bin/qemush
 
 confdest="$DESTDIR"/etc/conf.d/qemu
