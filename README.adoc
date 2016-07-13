@@ -26,10 +26,9 @@ ____
 
 === Alpine Linux
 
-. Add `edge/testing` repository (e.g. http://dl-cdn.alpinelinux.org/alpine/edge/testing) to `/etc/apk/repositories`, if you don’t have it yet, and run `apk update`.
-. Install https://pkgs.alpinelinux.org/package/edge/testing/x86_64/qemu-init-script[qemu-init-script]:
-+
-    apk add qemu-init-script
+Install package https://pkgs.alpinelinux.org/package/edge/testing/x86_64/qemu-init-script[qemu-openrc]:
+
+    apk add qemu-openrc
 
 === Gentoo
 
