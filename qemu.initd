@@ -219,7 +219,7 @@ cdrom_args() {
 }
 
 net_args() {
-	local idx net_id net_type opts mac
+	local idx net_id net_type opts mac dev
 
 	for idx in $(seq 0 9); do
 		net_id="net${idx}"
@@ -231,11 +231,14 @@ net_args() {
 
 		if [ -n "$net_type" ]; then
 			# comma-separated key=value pairs; contains trailing comma if not empty
-			opts=$(set | sed -En "s/^net${idx}_(.*)/\1/p" | grep -v '^mac=.*$' | tr $'\n' ',')
-			echo "-netdev ${net_type},${opts}id=hostnet${idx}"
-
+			opts=$(set | sed -En "s/^net${idx}_(.*)/\1/p" \
+					| grep -Ev '^(mac|device)=.*$' \
+					| tr $'\n' ',')
 			mac=$(getval ${net_id}_mac "$(gen_macaddr ${VM_NAME}%${idx})")
-			echo "-device virtio-net-pci,id=${net_id},netdev=hostnet${idx},mac=${mac}"
+			dev=$(getval ${net_id}_device virtio-net-pci)
+
+			echo "-netdev ${net_type},${opts}id=hostnet${idx}"
+			echo "-device ${dev},id=${net_id},netdev=hostnet${idx},mac=${mac}"
 		fi
 	done
 }

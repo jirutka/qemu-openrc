@@ -106,13 +106,14 @@
 # and it should be unique as well. You can override the MAC address with
 # variable netX_mac.
 #
-# These NICs will use driver virtio-net-pci (requires virtio-net driver to be
-# installed in the VM).
+# The default driver for NICs is virtio-net-pci (requires virtio-net driver
+# to be installed in the VM). You can override it with variable netX_device.
 #
 # Example:
 #   net0="bridge"
 #   net0_br="br0"
 #   net0_mac="52:54:12:34:56:78"
+#   net0_device="e1000"
 #
 net0="bridge"
 
