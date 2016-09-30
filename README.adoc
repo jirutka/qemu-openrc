@@ -26,7 +26,7 @@ ____
 
 === Alpine Linux
 
-Install package https://pkgs.alpinelinux.org/package/edge/testing/x86_64/qemu-init-script[qemu-openrc]:
+Install package https://pkgs.alpinelinux.org/package/v3.4/main/x86_64/qemu-openrc[qemu-openrc]:
 
     apk add qemu-openrc
 
