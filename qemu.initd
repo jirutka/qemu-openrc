@@ -95,7 +95,7 @@ start_pre() {
 	command_args_push "$(net_args) $(disk_args) $(cdrom_args) $extra_args"
 
 	if yesno "$EINFO_VERBOSE"; then
-		einfo "Command: $command $(echo $command_args)"
+		einfo "Command: $command $(printf '%s ' $command_args)"
 	fi
 
 	local path; for path in "$pidfile" "$monitor_socket" "$logfile"; do
@@ -271,5 +271,5 @@ getval() {
 	local var_name="$1"
 	local default="${2:-}"
 
-	eval "echo \${$var_name:-$default}"
+	eval "printf '%s\n' \"\${$var_name:-$default}\""
 }

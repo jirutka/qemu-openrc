@@ -89,7 +89,7 @@ version() {
 
 
 hex() {
-	echo "$1" | sed -E 's/(..)/\\x\1/g'
+	printf '%s\n' "$1" | sed -E 's/(..)/\\x\1/g'
 }
 
 normalize_arch() {
@@ -102,7 +102,7 @@ normalize_arch() {
 
 register() {
 	if yesno "$EINFO_VERBOSE"; then
-		einfo "Registering $(echo "$1" | cut -d: -f2)"
+		einfo "Registering $(printf %s "$1" | cut -d: -f2)"
 	fi
-	echo "$1" > /proc/sys/fs/binfmt_misc/register
+	printf '%s\n' "$1" > /proc/sys/fs/binfmt_misc/register
 }
