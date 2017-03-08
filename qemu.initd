@@ -2,7 +2,7 @@
 # vim: set ft=sh: ts=4:
 # source: https://github.com/jirutka/qemu-openrc
 
-VERSION='0.5.0'
+VERSION='0.5.1'
 VM_NAME="${RC_SVCNAME#qemu.}"
 
 : ${user:=qemu}
@@ -28,14 +28,18 @@ VM_NAME="${RC_SVCNAME#qemu.}"
 : ${extra_args:=}
 
 name="VM $VM_NAME"
-describe="QEMU virtual machine \"$VM_NAME\""
+description="QEMU virtual machine \"$VM_NAME\""
 
 extra_commands='forcestop version'
-describe_forcestop='Force stop the system'
-describe_reset='Reset the system'
+description_forcestop='Force stop the system'
+description_version='Show version of this script'
 
-extra_started_commands='reset'
-describe_version='Show version of this script'
+extra_started_commands='reset suspend resume vmstatus'
+description_reset='Reset the system'
+description_suspend='Suspend running VM'
+description_resume='Resume suspended VM'
+description_vmstatus='Show status reported by qemu'
+
 
 command="/usr/bin/qemu-system-$system_type"
 command_args="
@@ -177,6 +181,24 @@ reset() {
 	eend $?
 }
 
+suspend() {
+	ebegin "Suspending \"$name\""
+
+	qemush 'stop'
+	eend $?
+}
+
+resume() {
+	ebegin "Resuming suspended \"$name\""
+
+	qemush 'cont'
+	eend $?
+}
+
+vmstatus() {
+	qemushshow 'info status' | xargs einfo
+}
+
 version() {
 	echo "qemu-openrc $VERSION"
 }
@@ -261,6 +283,11 @@ check_bridge() {
 qemush() {
 	local IFS=$'\n'
 	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" 1>/dev/null
+}
+
+qemushshow() {
+	local IFS=$'\n'
+	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" | tail -n +3 | head -n -1
 }
 
 gen_macaddr() {
