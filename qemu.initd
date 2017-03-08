@@ -34,8 +34,11 @@ extra_commands='forcestop version'
 description_forcestop='Force stop the system'
 description_version='Show version of this script'
 
-extra_started_commands='reset'
+extra_started_commands='reset resume suspend vmstatus'
 description_reset='Reset the system'
+description_resume='Resume suspended VM'
+description_suspend='Suspend running VM'
+description_vmstatus='Show status reported by QEMU'
 
 command="/usr/bin/qemu-system-$system_type"
 command_args="
@@ -177,6 +180,24 @@ reset() {
 	eend $?
 }
 
+resume() {
+	ebegin "Resuming suspended $name"
+
+	qemush 'cont'
+	eend $?
+}
+
+suspend() {
+	ebegin "Suspending $name"
+
+	qemush 'stop'
+	eend $?
+}
+
+vmstatus() {
+	qemush_show 'info status' | xargs einfo
+}
+
 version() {
 	echo "qemu-openrc $VERSION"
 }
@@ -261,6 +282,11 @@ check_bridge() {
 qemush() {
 	local IFS=$'\n'
 	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" 1>/dev/null
+}
+
+qemush_show() {
+	local IFS=$'\n'
+	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" | tail -n +3 | head -n -1
 }
 
 gen_macaddr() {
