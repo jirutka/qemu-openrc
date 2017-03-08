@@ -28,14 +28,14 @@ VM_NAME="${RC_SVCNAME#qemu.}"
 : ${extra_args:=}
 
 name="VM $VM_NAME"
-describe="QEMU virtual machine \"$VM_NAME\""
+description="QEMU virtual machine \"$VM_NAME\""
 
 extra_commands='forcestop version'
-describe_forcestop='Force stop the system'
-describe_reset='Reset the system'
+description_forcestop='Force stop the system'
+description_version='Show version of this script'
 
 extra_started_commands='reset'
-describe_version='Show version of this script'
+description_reset='Reset the system'
 
 command="/usr/bin/qemu-system-$system_type"
 command_args="
