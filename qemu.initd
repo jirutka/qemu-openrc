@@ -205,7 +205,7 @@ version() {
 #-------------------------------- Helpers -------------------------------
 
 is_running() {
-	[ -e "$pidfile" ] && kill -0 "$(cat "$pidfile")"
+	[ -e "$pidfile" ] && kill -0 "$(cat "$pidfile")" &> /dev/null
 }
 
 command_args_push() {
