@@ -40,7 +40,6 @@ description_suspend='Suspend running VM'
 description_resume='Resume suspended VM'
 description_vmstatus='Show status reported by qemu'
 
-
 command="/usr/bin/qemu-system-$system_type"
 command_args="
 	-name $VM_NAME,process=$VM_NAME
