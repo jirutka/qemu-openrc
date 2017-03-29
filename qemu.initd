@@ -34,11 +34,11 @@ extra_commands='forcestop version'
 description_forcestop='Force stop the system'
 description_version='Show version of this script'
 
-extra_started_commands='reset suspend resume vmstatus'
+extra_started_commands='reset resume suspend vmstatus'
 description_reset='Reset the system'
-description_suspend='Suspend running VM'
 description_resume='Resume suspended VM'
-description_vmstatus='Show status reported by qemu'
+description_suspend='Suspend running VM'
+description_vmstatus='Show status reported by QEMU'
 
 command="/usr/bin/qemu-system-$system_type"
 command_args="
@@ -180,22 +180,22 @@ reset() {
 	eend $?
 }
 
-suspend() {
-	ebegin "Suspending \"$name\""
-
-	qemush 'stop'
-	eend $?
-}
-
 resume() {
-	ebegin "Resuming suspended \"$name\""
+	ebegin "Resuming suspended $name"
 
 	qemush 'cont'
 	eend $?
 }
 
+suspend() {
+	ebegin "Suspending $name"
+
+	qemush 'stop'
+	eend $?
+}
+
 vmstatus() {
-	qemushshow 'info status' | xargs einfo
+	qemush_show 'info status' | xargs einfo
 }
 
 version() {
@@ -284,7 +284,7 @@ qemush() {
 	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" 1>/dev/null
 }
 
-qemushshow() {
+qemush_show() {
 	local IFS=$'\n'
 	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" | tail -n +3 | head -n -1
 }
