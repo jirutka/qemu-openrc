@@ -2,7 +2,7 @@
 # vim: set ft=sh: ts=4:
 # source: https://github.com/jirutka/qemu-openrc
 
-VERSION='0.5.1'
+VERSION='0.6.0'
 
 #   <magic>                                  <offset>                                 <arch>
 FMTS="7f454c460201010000000000000000000200b7 ffffffffffffff00fffffffffffffffffeffff aarch64
