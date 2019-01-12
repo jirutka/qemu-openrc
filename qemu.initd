@@ -49,7 +49,7 @@ command_args="
 	-realtime mlock=off
 	-rtc base=$rtc_base
 	-smp cpus=$smp_cpus,maxcpus=$smp_cpus_max
-	-balloon virtio
+	-device virtio-balloon
 	-vga $vga
 	-device virtio-rng-pci
 	-device virtio-scsi-pci,id=scsi
