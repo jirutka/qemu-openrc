@@ -255,7 +255,7 @@ net_args() {
 			opts=$(set | sed -En "s/^net${idx}_(.*)/\1/p" \
 					| grep -Ev '^(mac|device)=.*$' \
 					| tr $'\n' ',')
-			mac=$(getval ${net_id}_mac "$(gen_macaddr ${VM_NAME}%${idx})")
+			mac=$(getval ${net_id}_mac "$(gen_macaddr ${VM_NAME}#${idx})")
 			dev=$(getval ${net_id}_device virtio-net-pci)
 
 			echo "-netdev ${net_type},${opts}id=hostnet${idx}"
