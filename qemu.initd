@@ -195,7 +195,7 @@ suspend() {
 }
 
 vmstatus() {
-	qemush_show 'info status' | xargs einfo
+	qemush_show 'info status' | tr -d '\r' | xargs einfo
 }
 
 version() {
