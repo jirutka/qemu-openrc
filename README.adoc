@@ -30,10 +30,6 @@ Install package https://pkgs.alpinelinux.org/package/v3.4/main/x86_64/qemu-openr
 
     apk add qemu-openrc
 
-=== Gentoo
-
-. Add https://github.com/cvut/gentoo-overlay[CTU’s Gentoo Overlay] to your repos.conf or Layman (read https://github.com/cvut/gentoo-overlay#usage[howto]).
-. `emerge -av app-emulation/qemu-init-script`
 
 === Manually
 
