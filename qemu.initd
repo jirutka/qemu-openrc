@@ -281,12 +281,12 @@ check_bridge() {
 
 qemush() {
 	local IFS=$'\n'
-	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" 1>/dev/null
+	printf "%b\n" "$*" | socat - "UNIX-CONNECT:${monitor_socket}" 1>/dev/null
 }
 
 qemush_show() {
 	local IFS=$'\n'
-	echo -e "$*" | socat - "UNIX-CONNECT:${monitor_socket}" | tail -n +3 | head -n -1
+	printf "%b\n" "$*" | socat - "UNIX-CONNECT:${monitor_socket}" | tail -n +3 | head -n -1
 }
 
 gen_macaddr() {

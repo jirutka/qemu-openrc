@@ -50,7 +50,7 @@ fi
 if [ -n "$2" ]; then
 	IFS=$'\n'
 	shift
-	echo -e "$*" | socat - "UNIX-CONNECT:$socket_path"
+	printf "%b\n" "$*" | socat - "UNIX-CONNECT:$socket_path"
 else
 	echo 'Connecting to QEMU monitor in interactive mode. Use Ctrl+O to exit.'
 	echo 'Note: command "quit" does not exit the monitor, but stops VM!'
