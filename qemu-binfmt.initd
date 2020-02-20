@@ -30,7 +30,7 @@ FMTS="7f454c460201010000000000000000000200b7 ffffffffffffff00fffffffffffffffffef
 	7f454c460202010000000000000000000002002b fffffffffffffffffffffffffffffffffffeffff sparc64"
 
 : ${binfmt_flags:=OCF}
-: ${qemu_suffix=-static}
+: ${qemu_suffix:=}
 
 describe='Configure binfmt misc emulation via QEMU'
 
