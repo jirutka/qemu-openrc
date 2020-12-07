@@ -48,9 +48,9 @@ apk add socat  # on Alpine
 
 . Install runscript, example config and qemush utility:
 +
-    ./install
+    make install
 +
-You may use variables `DESTDIR` and `PREFIX` to specify the target directories.
+You may use standard GNU variables such as `DESTDIR`, `prefix`, `bindir`… to specify the target directories.
 
 
 == How to configure a new VM
