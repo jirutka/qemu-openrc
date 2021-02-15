@@ -46,7 +46,7 @@ command_args="
 	-nodefaults
 	-no-user-config
 	-cpu $cpu_model
-	-realtime mlock=off
+	-overcommit mem-lock=off
 	-rtc base=$rtc_base
 	-smp cpus=$smp_cpus,maxcpus=$smp_cpus_max
 	-device virtio-balloon
