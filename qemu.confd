@@ -33,6 +33,9 @@
 # stopping the VM.
 #shutdown_timeout=40
 
+# Pointer device that uses absolute coordinates (like a touchscreen).
+# Useful for Windows guests
+#enable_usb_tablet="no"
 
 # QEMU system to emulate; you need qemu-system-${system_type} binary.
 #system_type="x86_64"

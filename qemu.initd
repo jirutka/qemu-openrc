@@ -13,6 +13,7 @@ VM_NAME="${RC_SVCNAME#qemu.}"
 
 : ${system_type:=x86_64}
 : ${enable_kvm:=yes}
+: ${enable_usb_tablet:=no}
 : ${cpu_model:=host}
 : ${smp_cpus:=1}
 : ${smp_cpus_max:=$smp_cpus}
@@ -83,6 +84,9 @@ start_pre() {
 
 	if yesno "$enable_kvm"; then
 		command_args_push '-enable-kvm'
+	fi
+	if yesno "$enable_usb_tablet"; then
+		command_args_push '-usb -device usb-tablet'
 	fi
 	if [ "$memory" = "$memory_max" ]; then
 		memory_slots="0"
