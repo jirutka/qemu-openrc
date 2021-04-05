@@ -14,6 +14,7 @@ VM_NAME="${RC_SVCNAME#qemu.}"
 : ${system_type:=x86_64}
 : ${enable_kvm:=yes}
 : ${enable_usb_tablet:=no}
+: ${enable_guest_agent:=no}
 : ${cpu_model:=host}
 : ${smp_cpus:=1}
 : ${smp_cpus_max:=$smp_cpus}
@@ -26,6 +27,7 @@ VM_NAME="${RC_SVCNAME#qemu.}"
 : ${vnc_listen:=0.0.0.0}
 : ${hugepages_path:=/dev/hugepages}
 : ${monitor_socket:=/run/qemu/${VM_NAME}/monitor.sock}
+: ${guest_agent_socket:=/run/qemu/${VM_NAME}/guest_agent.sock}
 : ${extra_args:=}
 
 name="VM $VM_NAME"
@@ -88,6 +90,9 @@ start_pre() {
 	if yesno "$enable_usb_tablet"; then
 		command_args_push '-usb -device usb-tablet'
 	fi
+	if yesno "$enable_guest_agent"; then
+		command_args_push '-chardev socket,path=$guest_agent_socket,server,nowait,id=qga0 -device virtio-serial -device virtserialport,chardev=qga0,name=org.qemu.guest_agent.0'
+	fi
 	if [ "$memory" = "$memory_max" ]; then
 		memory_slots="0"
 	fi
@@ -105,7 +110,7 @@ start_pre() {
 		einfo "Command: $command $(printf '%s ' $command_args)"
 	fi
 
-	local path; for path in "$pidfile" "$monitor_socket" "$logfile"; do
+	local path; for path in "$pidfile" "$monitor_socket" "$guest_agent_socket" "$logfile"; do
 		# checkpath doesn't create intermediate directories
 		mkdir -p "$(dirname "$path")"
 		checkpath -d -m 0750 -o $user:$group "$(dirname "$path")"
@@ -118,6 +123,11 @@ start_post() {
 	ewaitfile 5 "$monitor_socket" || {
 		eerror 'Monitor socket has not been created!'; return 1
 	}
+	if yesno "$enable_guest_agent"; then
+		ewaitfile 5 "$guest_agent_socket" || {
+			eerror 'Guest Agent socket has not been created!'; return 1
+		}
+	fi
 	if [ -n "$vnc_password" ]; then
 		qemush "set_password vnc $vnc_password" || eerror 'Failed to set VNC password!'
 	fi
@@ -127,22 +137,41 @@ stop() {
 	local count=0
 	local retval=0
 
-	ebegin "Stopping $name"
+	if is_running && yesno "$enable_guest_agent"; then
+			ebegin "Stopping $name with guest agent"
 
-	if is_running && qemush 'system_powerdown'; then
-		count="$shutdown_timeout"
+			count="$shutdown_timeout"
 
-		printf "   Waiting $count seconds for VM shutdown "
-		while is_running && [ $count -gt 0 ]; do
-			sleep 1
-			printf '.'
-			count=$(( count - 1 ))
-		done
-		printf '\n'
+			echo -e '{"execute": "guest-shutdown"}' | socat - "unix-connect:$guest_agent_socket"
+
+			printf "   Waiting $count seconds for VM shutdown "
+			while is_running && [ $count -gt 0 ]; do
+					sleep 1
+					printf '.'
+					count=$(( count - 1 ))
+			done
+			printf '\n'
+
+	elif is_running && qemush 'system_powerdown'; then
+			ebegin "Stopping $name with qemu monitor (ACPI)"
+
+			count="$shutdown_timeout"
+
+			printf "   Waiting $count seconds for VM shutdown "
+			while is_running && [ $count -gt 0 ]; do
+					sleep 1
+					printf '.'
+					count=$(( count - 1 ))
+			done
+			printf '\n'
 	fi
 
 	if [ $count -eq 0 ]; then
-		ewarn 'Failed to shutdown VM gracefully using ACPI, stopping it with force'
+		if yesno "$enable_guest_agent"; then
+			ewarn 'Failed to shutdown VM gracefully using guest agent, stopping it with force'
+		else
+			ewarn 'Failed to shutdown VM gracefully using qemu monitor (ACPI), stopping it with force'
+		fi
 
 		start-stop-daemon --stop \
 			--quiet --retry 'SIGKILL/5' \
@@ -155,6 +184,9 @@ stop() {
 
 stop_post() {
 	[ -S "$monitor_socket" ] && rm -f "$monitor_socket"
+	if yesno "$enable_guest_agent"; then
+		[ -S "$guest_agent_socket" ] && rm -f "$guest_agent_socket"
+	fi
 	[ -f "$pidfile" ] && rm -f "$pidfile"
 	return 0
 }

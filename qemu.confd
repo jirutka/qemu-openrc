@@ -37,6 +37,14 @@
 # Useful for Windows guests
 #enable_usb_tablet="no"
 
+# Expose to the host via a separate QEMU chardev device (generally, a unix socket)
+# that communicates with the agent using the QMP wire protocol (minus the negotiation)
+# over a virtio-serial or isa-serial channel to the guest. Require install guest agent in a VM.
+#enable_guest_agent="no"
+
+# Path of the QEMU guest agent socket for this VM.
+#guest_agent_socket="/run/qemu/${VM_NAME}/guest_agent.sock"
+
 # QEMU system to emulate; you need qemu-system-${system_type} binary.
 #system_type="x86_64"
 
@@ -96,7 +104,6 @@
 
 # Path of the QEMU monitor socket for this VM.
 #monitor_socket="/run/qemu/${VM_NAME}/monitor.sock"
-
 
 ##
 # Network interfaces
