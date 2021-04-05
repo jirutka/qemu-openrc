@@ -91,6 +91,19 @@
 # information.
 #vga="std"
 
+# Enable the SPICE remote desktop protocol.
+#enable_spice="no"
+
+# Address to listen for SPICE (TCP) connections.
+#spice_listen="0.0.0.0"
+
+# Port for SPICE protocol.
+#spice_port="5800"
+
+# Password required for client connections on SPICE. If empty, then password
+# base authentication is disabled.
+#spice_password=
+
 # Address to listen for VNC (TCP) connections.
 #vnc_listen="0.0.0.0"
 
