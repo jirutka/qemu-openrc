@@ -15,6 +15,7 @@ VM_NAME="${RC_SVCNAME#qemu.}"
 : ${enable_kvm:=yes}
 : ${enable_usb_tablet:=no}
 : ${enable_guest_agent:=no}
+: ${enable_qmp:=no}
 : ${enable_spice:=no}
 : ${cpu_model:=host}
 : ${smp_cpus:=1}
@@ -31,6 +32,7 @@ VM_NAME="${RC_SVCNAME#qemu.}"
 : ${hugepages_path:=/dev/hugepages}
 : ${monitor_socket:=/run/qemu/${VM_NAME}/monitor.sock}
 : ${guest_agent_socket:=/run/qemu/${VM_NAME}/guest_agent.sock}
+: ${qmp_socket:=/run/qemu/${VM_NAME}/qmp.sock}
 : ${extra_args:=}
 
 name="VM $VM_NAME"
@@ -96,6 +98,9 @@ start_pre() {
 	if yesno "$enable_guest_agent"; then
 		command_args_push '-chardev socket,path=$guest_agent_socket,server,nowait,id=qga0 -device virtio-serial -device virtserialport,chardev=qga0,name=org.qemu.guest_agent.0'
 	fi
+	if yesno "$enable_qmp"; then
+		command_args_push '-qmp unix:$qmp_socket,server,nowait'
+	fi
 	if yesno "$enable_spice"; then
 		if [ -n "$spice_password" ]; then
 			command_args_push '-spice port=$spice_port,addr=$spice_listen,password=$spice_password'
@@ -124,7 +129,7 @@ start_pre() {
 		einfo "Command: $command $(printf '%s ' $command_args)"
 	fi
 
-	local path; for path in "$pidfile" "$monitor_socket" "$guest_agent_socket" "$logfile"; do
+	local path; for path in "$pidfile" "$monitor_socket" "$guest_agent_socket" "$logfile" "$qmp_socket"; do
 		# checkpath doesn't create intermediate directories
 		mkdir -p "$(dirname "$path")"
 		checkpath -d -m 0750 -o $user:$group "$(dirname "$path")"
@@ -140,6 +145,11 @@ start_post() {
 	if yesno "$enable_guest_agent"; then
 		ewaitfile 5 "$guest_agent_socket" || {
 			eerror 'Guest Agent socket has not been created!'; return 1
+		}
+	fi
+	if yesno "$enable_qmp"; then
+		ewaitfile 5 "$qmp_socket" || {
+			eerror 'QMP socket has not been created!'; return 1
 		}
 	fi
 	if [ -n "$vnc_password" ]; then
@@ -200,6 +210,9 @@ stop_post() {
 	[ -S "$monitor_socket" ] && rm -f "$monitor_socket"
 	if yesno "$enable_guest_agent"; then
 		[ -S "$guest_agent_socket" ] && rm -f "$guest_agent_socket"
+	fi
+	if yesno "$enable_qmp"; then
+		[ -S "$qmp_socket" ] && rm -f "$qmp_socket"
 	fi
 	[ -f "$pidfile" ] && rm -f "$pidfile"
 	return 0

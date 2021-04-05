@@ -51,6 +51,12 @@
 # Whether to enable KVM (hardware-assisted virtualization).
 #enable_kvm="yes"
 
+# Whether to enable QMP (QEMU Monitor Protocol)
+#enable_qmp="no"
+
+# Path of the QMP socket for this VM.
+#qmp_socket="/run/qemu/${VM_NAME}/qmp.sock"
+
 # Select CPU model. Value "host" is allowed only for KVM.
 # Run `qemu-system-$system_type -cpu help` for list of options.
 #cpu_model="host"
