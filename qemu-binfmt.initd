@@ -58,11 +58,11 @@ start() {
 	fi
 
 	local retval=0
-	local host_arch=$(normalize_arch "$(uname -m)")
+	local host_arch="$(normalize_arch "$(uname -m)")"
 
 	local magic mask arch
 	echo "$FMTS" | while read magic mask arch; do
-		local qemu_arch=$(normalize_arch $arch)
+		local qemu_arch="$(normalize_arch $arch)"
 		local interpreter="/usr/bin/qemu-${qemu_arch}$qemu_suffix"
 
 		if [ "$host_arch" != "$qemu_arch" ] && [ -x "$interpreter" ]; then
