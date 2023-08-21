@@ -58,6 +58,7 @@ command_background='yes'
 
 start_stop_daemon_args="
 	--user=$user
+	--group=$group
 	--wait=100
 	--stdout=$logfile
 	--stderr=$logfile"
