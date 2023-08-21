@@ -55,13 +55,12 @@ command_args="
 	-device virtio-scsi-pci,id=scsi
 	-monitor unix:$monitor_socket,server,nowait"
 command_background='yes'
+command_user="$user"
+command_group="$group"
+output_log="$logfile"
+error_log="$logfile"
 
-start_stop_daemon_args="
-	--user=$user
-	--group=$group
-	--wait=100
-	--stdout=$logfile
-	--stderr=$logfile"
+start_stop_daemon_args="--wait=100"
 
 required_files="$command"
 
