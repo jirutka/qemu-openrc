@@ -9,6 +9,7 @@ VM_NAME="${RC_SVCNAME#qemu.}"
 : ${group:=qemu}
 : ${pidfile:=/run/qemu/${VM_NAME}/qemu.pid}
 : ${logfile:=/var/log/qemu/${VM_NAME}.log}
+: ${start_wait=100}  # milliseconds
 : ${shutdown_timeout:=40}
 
 : ${system_type:=x86_64}
@@ -60,7 +61,7 @@ command_group="$group"
 output_log="$logfile"
 error_log="$logfile"
 
-start_stop_daemon_args="--wait=100"
+start_stop_daemon_args="${start_wait:+--wait=$start_wait}"
 
 required_files="$command"
 

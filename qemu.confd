@@ -29,6 +29,10 @@
 # Where to redirect stdout/stderr of the QEMU process.
 #logfile="/var/log/qemu/${VM_NAME}.log"
 
+# Number of milliseconds to wait after starting to check if the VM is still
+# running (used only with start-stop-daemon). Set to empty string to disable.
+#start_wait=100
+
 # How many seconds to wait after sending "system_shutdown" before force
 # stopping the VM.
 #shutdown_timeout=40
