@@ -16,6 +16,9 @@
 # suitable for you, then you can omit that variable in your VM config.
 #
 
+# Name of virtual machine, by default /etc/conf.d/qemu.<VM_NAME>
+# Enable when you change variables containing it.
+#VM_NAME="${RC_SVCNAME#qemu.}"
 
 # User to run the QEMU process.
 #user="qemu"
