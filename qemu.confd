@@ -98,6 +98,8 @@
 # Path of the QEMU monitor socket for this VM.
 #monitor_socket="/run/qemu/${VM_NAME}/monitor.sock"
 
+# Path of the QEMU Guest Agent socket for this VM.
+#qemu_ga_socket="/run/qemu/${VM_NAME}/qemu_ga.sock"
 
 ##
 # Network interfaces
